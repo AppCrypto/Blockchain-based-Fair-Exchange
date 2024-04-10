@@ -1,6 +1,4 @@
 import os
-os.system("pip3 install py-solc-x==2.0.2")
-os.system("pip3 install web3==6.15.1")
 #使用方法替换gnark-tests-main/solidity/contract文件夹下运行
 #先运行main.go之后再运行verify.py
 import web3
@@ -43,7 +41,7 @@ w3=web3.Web3(web3.HTTPProvider('http://127.0.0.1:7545', request_kwargs={'timeout
 #编译部署contract_g16.sol
 groth_Contract=compile_deploy_file(w3,"contract_g16.sol")
 #编译部署contract_plonk.sol
-plonk_Contract=compile_deploy_file(w3,"contract_plonk.sol")
+#plonk_Contract=compile_deploy_file(w3,"contract_plonk.sol")
 
 # 读取JSON文件
 with open('gorth16_output.json', 'r') as file:
@@ -53,7 +51,9 @@ result = groth_Contract.functions.verifyProof(data["G_proof"],data["G_input"]).c
 #评估消耗的gas值
 estimate_gas = groth_Contract.functions.verifyProof(data["G_proof"],data["G_input"]).estimate_gas({'from':w3.eth.accounts[0]})
 print(f"groth_verify的结果:{not bool(result)}, groth_verify预计的gas值消耗: {estimate_gas}")
+#print(not bool(result))
 
+"""
 # 读取JSON文件
 with open('plonk_output.json', 'r') as file:
     data = json.load(file)
@@ -63,4 +63,6 @@ decoded_bytes = base64.b64decode(encoded_data)
 result1 = plonk_Contract.functions.Verify(decoded_bytes, data["P_input"]).call({'from':w3.eth.accounts[0]})
 #评估消耗的gas值
 estimate_gas1 = plonk_Contract.functions.Verify(decoded_bytes, data["P_input"]).estimate_gas({'from':w3.eth.accounts[0]})
-print(f"plonk_verify的结果:{result1}, plonk_verify预计的gas值消耗: {estimate_gas1}")
+#print(f"plonk_verify的结果:{result1}, plonk_verify预计的gas值消耗: {estimate_gas1}")
+print(result1)
+"""

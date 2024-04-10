@@ -2,9 +2,10 @@ package abe_test
 
 import (
 	//"github.com/fentec-project/gofe/abe"
-	"example.com/m/abe"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/consensys/gnark-tests/abe"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMAABE(t *testing.T) {

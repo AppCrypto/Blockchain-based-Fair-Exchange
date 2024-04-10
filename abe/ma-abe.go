@@ -21,14 +21,16 @@ import (
 	cbc "crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"example.com/m/bn128"
 	"fmt"
 
-	"github.com/fentec-project/gofe/data"
-	"github.com/fentec-project/gofe/sample"
+	"github.com/consensys/gnark-tests/bn128"
+
 	"io"
 	"math/big"
 	"time"
+
+	"github.com/fentec-project/gofe/data"
+	"github.com/fentec-project/gofe/sample"
 )
 
 // This is a ciphertext policy (CP) multi-authority (MA) attribute based
