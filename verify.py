@@ -50,8 +50,8 @@ with open('gorth16_output.json', 'r') as file:
 result = groth_Contract.functions.verifyProof(data["G_proof"],data["G_input"]).call({'from':w3.eth.accounts[0]})
 #评估消耗的gas值
 estimate_gas = groth_Contract.functions.verifyProof(data["G_proof"],data["G_input"]).estimate_gas({'from':w3.eth.accounts[0]})
-print(f"groth_verify的结果:{not bool(result)}, groth_verify预计的gas值消耗: {estimate_gas}")
-#print(not bool(result))
+#print(f"groth_verify的结果:{not bool(result)}, groth_verify预计的gas值消耗: {estimate_gas}")
+print(not bool(result))
 
 """
 # 读取JSON文件
