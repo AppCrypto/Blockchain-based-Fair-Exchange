@@ -164,16 +164,28 @@ def Decrypt(c_ji, sk_i):  # PVSS.Decryp. Decrypt C_ji
     return sh1_ji
 
 
-def Reconstruct(res, n, t):
+def Reconstruct(res):
     # PVSS.Reconstruct.
     # The secret recovery g^s_j
-    recIndex = [i + 1 for i in range(0, t + 1)]
-    print(recIndex)
-    sum = multiply(H1, 0)
+    t=len(res)
+    #print("t len:",t)
+    recIndex = [i + 1 for i in range(0, t)]
+    #print(recIndex)
+    def lagrange_coefficient(i: int) -> int:
+        result = 1
+        for j in recIndex:
+        # print(j)
+        # j=j-1
+            if i != j:
+                result *= j * sympy.mod_inverse((j - i) % CURVE_ORDER, CURVE_ORDER)
+                result %= CURVE_ORDER
+        return result
+    #print(recIndex)
+    sum = multiply(G1, 0)
 
     for i in recIndex:
-        print("i", i, util.lagrange_coefficient(i))
-        sum = add(sum, multiply(res["v"][i], util.lagrange_coefficient(i)))
+        #print("i", i, util.lagrange_coefficient(i))
+        sum = add(sum, multiply(res[i-1], lagrange_coefficient(i)))
     return sum
 
 

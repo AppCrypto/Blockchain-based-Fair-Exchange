@@ -11,6 +11,8 @@ import sympy  # Needed for mod_inverse
 import PVSS
 import util
 import AES 
+import sys
+import time
 import subprocess
 from py_ecc.bn128 import G1, G2
 from py_ecc.bn128 import add, multiply, neg, pairing, is_on_curve
@@ -77,7 +79,7 @@ print(type(decrypted_data.decode('utf-8')))
 """
 H1 = multiply(G1, 9868996996480530350723936346388037348513707152826932716320380442065450531909)  # Generator H1
 
-def seller_Round1(seller_address, n: int, t: int, secret:bytes):
+def seller_commit_data(seller_address, n: int, t: int, secret:bytes):
 
     s = PVSS.random_scalar()
     #print("anwser:",multiply(G1,s))
@@ -113,20 +115,27 @@ def seller_Round1(seller_address, n: int, t: int, secret:bytes):
     # 将字符串写入文件
         file.write(zkSNARKs_Hash)
 
-    return key
+    return key,s
 
 
 def NormalExchange(key):
     encrypted_data=Contract.functions.DownloadCiphertext().call()
     decrypted_data = AES.Decrypt(key,encrypted_data)
     print("Decrypted data:", decrypted_data.decode('utf-8'))
-    Contract.functions.ETHtransfer(w3.eth.accounts[2]).transact({'from': w3.eth.accounts[2]})
+    
 
 def Recovery(pk,sk,t):
+    shares=[]
     for i in range(0,t):
-         TTP_decrypt(i+1, pk[i], sk[i])
+        sh=TTP_decrypt(i+1, pk[i], sk[i])
+        shares.extend([sh])
 
-    result=Contract.functions.Reconstruction().call()
+
+    t1 = time.time()
+    result=PVSS.Reconstruct(shares)    #off-chain
+    elapsed_time_ms = (time.time() - t1) * 1000
+    print(f'enc:{elapsed_time_ms:.4f}ms')
+    #result=Contract.functions.Reconstruction().call()
     binary_str=bin(int(result[0]))[2:130]
     # 将二进制字符串转换为整数
     decimal_num = int(binary_str, 2)
@@ -137,6 +146,9 @@ def Recovery(pk,sk,t):
     decrypted_data = AES.Decrypt(key,encrypted_data)
     print("Decrypted data:", decrypted_data.decode('utf-8'))
 
+
+
+    
 
 def TTP_decrypt(No: int, pk_i, sk_i):
     """
@@ -156,11 +168,13 @@ def TTP_decrypt(No: int, pk_i, sk_i):
     proof = PVSS.DLEQ(G1, pk_i, sh1, C_i, sk_i)
     # Generate DLEQ P_Proof, proof is the share c decrypted by this tallier T_i
 
-    Contract.functions.Decrypted_ShareUpload(No, util.Point2IntArr(sh1), util.Point2IntArr(proof)).transact(
+    result=Contract.functions.Decrypted_ShareUpload(No, util.Point2IntArr(sh1), util.Point2IntArr(proof)).call(
         {'from': w3.eth.accounts[0]})
     # upload the decrypted share and P_Proof to the chain.
     # Once verified, keep the decrypted share in the DecryptedShare array on the chain
-    print("TTP", No, "done")
+    print("TTP", No, "done","  verify result:",result)
+    if(result==True):
+        return sh1
 
 def SmartContract_Verify():
     # 编译Go文件
@@ -173,15 +187,16 @@ def SmartContract_Verify():
 
     result=Contract.functions.PVSS_Verify().call()
     print("PVSS.Verify result:",result)
+    return result
 
 if __name__ == '__main__':
     #n = int(sys.argv[1])
-    n=int(10)
+    n=int(30)
     # Set the number n of talliers
 
-    t = int(n / 2)
+    t = int(n / 2)+1
     # Set the threshold value t
-    print("...........................................Setup phase.............................................", n, t)
+    print("...........................................Initialization.............................................", n, t)
 
     key = PVSS.Setup(n, t)
     # PVSS Key Generation
@@ -190,23 +205,67 @@ if __name__ == '__main__':
     sk = key["sk"]  # Set private key array
     pks = [util.Point2IntArr(pk[i]) for i in range(n)]  # Data transformation
     Contract.functions.Set_TTPs_PKs(pks).transact({'from': w3.eth.accounts[0]})
+    sk_buyer = PVSS.random_scalar()
+    pk_buyer = multiply(G1,sk_buyer)
 
-    print("..............................................Round - 1 .....................................................")
-    Contract.functions.BuyerUpload(w3.eth.accounts[3],30000000000000000).transact({'from': w3.eth.accounts[3],'value': 30000000000000000})
+    print("............................................Commit_data.....................................................")
+    
     #print( Contract.functions.show(w3.eth.accounts[0]).call())
 
     secret = b'Hello, AESDJAKJDKLAJDALKJDALKJDAOID444444889sfsdfsdf789765456AOIJA,DAKJDLKAJDAKNDM,ANDAKHDJKASHDJKADAM encryption!1564987564654564897987894545645623'
-    key = seller_Round1(w3.eth.accounts[2], n,t,secret)
+    key_aes = seller_commit_data(w3.eth.accounts[2], n,t,secret)
     #print( Contract.functions.show(w3.eth.accounts[0]).call())
-    SmartContract_Verify()
+    result=SmartContract_Verify()
 
-    print("..............................................Round - 2 .....................................................")
+    print("..........................................Transfer_asset.....................................................")
+    
+    if(result==True):
+        Contract.functions.BuyerUpload(w3.eth.accounts[3],30000000000000000).transact({'from': w3.eth.accounts[3],'value': 30000000000000000})
+        print("Buyer had lock asset")
+        Contract.functions.ETHtransfer(w3.eth.accounts[2]).transact({'from': w3.eth.accounts[2]})
+        print("Buyer had transfer asset to Seller")
 
-    NormalExchange(key)
     
-    Recovery(pk,sk,n)
+    print("............................................Reveal_key....................................................")
+    #print(key_aes[1])
+    c_e = multiply(pk_buyer,key_aes[1])
+    pub=multiply(H1,key_aes[1])
+    #print(int(key_aes))
     
+    proof=PVSS.DLEQ(H1,pub,pk_buyer,c_e,key_aes[1])
+
+    res=Contract.functions.DLEQ_verify(util.Point2IntArr(H1),util.Point2IntArr(pub),util.Point2IntArr(pk_buyer),util.Point2IntArr(c_e),util.Point2IntArr(proof)).call()
+    print("DLEQ result: ",res)
+    if(res==True):
+        re=PVSS.Decrypt(c_e,sk_buyer) 
+
+        #print("anwser:",multiply(G1,s))
+        binary_str=bin(int(re[0]))[2:130]
+        # 将二进制字符串转换为整数
+        decimal_num = int(binary_str, 2)
+        # 将整数转换为bytes类型
+        # 128位的AES密钥
+        key2 = decimal_num.to_bytes((len(binary_str) + 7) // 8, 'big')
+
+        encrypted_data=Contract.functions.DownloadCiphertext().call()
+        decrypted_data = AES.Decrypt(key2,encrypted_data)  
+        print("Decrypted data:", decrypted_data.decode('utf-8'))
+        #print(re)
+        #print(multiply(G1,key_aes[1]))
+
+    else:   
+        print("............................................Recovery (optional)....................................................")
+        Recovery(pk,sk,n)
+    #NormalExchange(key_aes[0])
+    
+        
+    #Recovery1(pk,sk,n)
     #print(Contract.functions.show2().call())
+    
+    
+
+
+
 
     
     
