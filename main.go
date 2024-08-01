@@ -210,7 +210,7 @@ func new_groth_proof1(assignment Circuit, r1cs constraint.ConstraintSystem, pk g
 }
 
 func Alice_grothVerify() bool {
-	cmd := exec.Command("/usr/bin/python3", "./verify.py") //go calls python verify.py directly
+	cmd := exec.Command("/usr/bin/python3", "./utils/verify.py") //go calls python verify.py directly
 	stdout, _ := cmd.Output()
 	output := strings.TrimSpace(string(stdout))
 	if output == "True" {

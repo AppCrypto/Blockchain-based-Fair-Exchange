@@ -6,7 +6,7 @@ from solcx import compile_standard, install_solc
 install_solc("0.8.0")
 import json  
 import random
-import util
+import utils.util as util
 import secrets
 import sympy  # Needed for mod_inverse
 from py_ecc.bn128 import G1, G2

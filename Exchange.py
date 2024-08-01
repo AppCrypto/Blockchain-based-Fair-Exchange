@@ -8,9 +8,9 @@ import json
 import random
 import secrets
 import sympy  # Needed for mod_inverse
-import PVSS
-import util
-import AES 
+import utils.PVSS as PVSS
+import utils.util as util
+import utils.AES as AES 
 import sys
 import time
 import subprocess
