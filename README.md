@@ -8,6 +8,16 @@ The seller provides a NIZK proof for key validation after the buyer pays with di
 Data is submitted to the blockchain and verified via smart contracts. 
 The PVSS scheme allows arbiters to assist the honest buyer in key recovery, ensuring fairness and privacy of shared data while eliminating single-node failures.
 
+The running environment of the protocol is with Ubuntu 22.10 running on VMware and Intel Core (TM) i7- 9750 @2.60 GHz CPU with 4GB RAM. 
+The protocol uses Python with an Ethereum official library py_ecc to implement the offchain functions. 
+Regarding zkSNARKs, we choose the Groth16 scheme. 
+Particularly, we use the “gnark” library developed using Go language to build the Groth16 proof and to generate a smart contract codes for verifying the proof.
+We chose MiMC as hash function for its zk-SNARK-friendly design, specifically
+tailored to minimize circuit costs through the use of only addition and multiplication. 
+The onchain smart contracts are implemented using solidity and compiled by solidity compiler “solc”. 
+Additionally, we leverage the “web3.py” library on python for smart contract interaction. 
+Our PVSS protocol uses the curve "BN128" both onchain and offchain throughout; the operations for this curve are available as precompiles on Ethereum, with the generator g being 156 bytes in length. 
+
 ## The phases included in the exchange protocol
 Initialization phase, 
 Commit data phase, 
