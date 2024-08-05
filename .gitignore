@@ -4,5 +4,6 @@
 *.pk
 *.vk
 *.srs
+*.pyc
 solidity/solidity_groth16.go
 solidity/solidity_plonk.go
