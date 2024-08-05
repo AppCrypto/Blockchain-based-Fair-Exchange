@@ -65,7 +65,7 @@ keccak_256 = Web3.solidity_keccak
 
 
 """
-# 128位的AES密钥
+# 128-bit AES key
 key = b'0123456789abcdef0123456789abcdef'
 print(type(key))
 message = b'Hello, AESDJAKJDKLAJDALKJDALKJDAOID789765456AOIJA,DAKJDLKAJDAKNDM,ANDAKHDJKASHDJKADAM encryption!1564987564654564897987894545645623'
@@ -84,10 +84,10 @@ def seller_commit_data(seller_address, n: int, t: int, secret:bytes):
     s = PVSS.random_scalar()
     #print("anwser:",multiply(G1,s))
     binary_str=bin(int(multiply(G1,s)[0]))[2:130]
-    # 将二进制字符串转换为整数
+    # Converts a binary string to an integer
     decimal_num = int(binary_str, 2)
-    # 将整数转换为bytes类型
-    # 128位的AES密钥
+    # Convert an integer to bytes
+    # 128-bit AES key
     key = decimal_num.to_bytes((len(binary_str) + 7) // 8, 'big')
 
     shares = PVSS.Share(s, H1, pk, n, t)
@@ -111,8 +111,7 @@ def seller_commit_data(seller_address, n: int, t: int, secret:bytes):
     #print(zkSNARKs_Hash)
     #print(type(zkSNARKs_Hash))
     with open('zkSNARKs_Hash.txt', 'w') as file:
-    # 要写入的字符串
-    # 将字符串写入文件
+    # Writing strings to a file
         file.write(zkSNARKs_Hash)
 
     return key,s
@@ -137,10 +136,9 @@ def Recovery(pk,sk,t):
     print(f'enc:{elapsed_time_ms:.4f}ms')
     #result=Contract.functions.Reconstruction().call()
     binary_str=bin(int(result[0]))[2:130]
-    # 将二进制字符串转换为整数
+    #  Converts a binary string to an integer
     decimal_num = int(binary_str, 2)
-    # 将整数转换为bytes类型
-    # 128位的AES密钥
+   
     key = decimal_num.to_bytes((len(binary_str) + 7) // 8, 'big')
     encrypted_data=Contract.functions.DownloadCiphertext().call()
     decrypted_data = AES.Decrypt(key,encrypted_data)
@@ -177,11 +175,11 @@ def TTP_decrypt(No: int, pk_i, sk_i):
         return sh1
 
 def SmartContract_Verify():
-    # 编译Go文件
+    # Compiling Go files
     cmd = ['go', 'build', 'main.go']
     subprocess.run(cmd)
 
-    # 执行可执行文件
+    # Execute the executable file
     cmd = ['./main']
     subprocess.run(cmd)
 
@@ -241,10 +239,9 @@ if __name__ == '__main__':
 
         #print("anwser:",multiply(G1,s))
         binary_str=bin(int(re[0]))[2:130]
-        # 将二进制字符串转换为整数
+        
         decimal_num = int(binary_str, 2)
-        # 将整数转换为bytes类型
-        # 128位的AES密钥
+       
         key2 = decimal_num.to_bytes((len(binary_str) + 7) // 8, 'big')
 
         encrypted_data=Contract.functions.DownloadCiphertext().call()

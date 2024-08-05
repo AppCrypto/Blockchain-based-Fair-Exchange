@@ -19,5 +19,5 @@ def Recovery1(pk,sk,t):
         print(f'enc:{elapsed_time_ms:.4f}ms')
     #result=Contract.functions.Reconstruction().call()
     
-    # 将整数转换为bytes类型
-    # 128位的AES密钥
+    # The conversion of an integer to the bytes data type.
+    # A 128-bit AES key.

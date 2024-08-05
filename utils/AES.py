@@ -9,18 +9,18 @@ import random
 def Encrypt(key, message):
     backend = default_backend()
 
-    # 生成16字节的随机IV
+    # A 16-byte random IV.
     iv = os.urandom(16)
 
-    # 使用AES算法和CBC模式创建Cipher对象
+    # Create a Cipher object using AES algorithm and CBC mode
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
     encryptor = cipher.encryptor()
 
-    # 使用填充方案对消息进行填充
+    # The message is padded using a padding scheme
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_data = padder.update(message) + padder.finalize()
 
-    # 加密消息
+    # encrypte
     ct = encryptor.update(padded_data) + encryptor.finalize()
 
     return iv + ct
@@ -29,31 +29,31 @@ def Encrypt(key, message):
 def Decrypt(key, data):
     backend = default_backend()
 
-    # 提取IV和密文
+    # Extract the IV and the ciphertext
     iv = data[:16]
     ct = data[16:]
 
-    # 使用AES算法和CBC模式创建Cipher对象
+    # Cipher objects are created using the AES algorithm and CBC mode
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
     decryptor = cipher.decryptor()
 
-    # 解密消息
+    # decrypt
     padded_data = decryptor.update(ct) + decryptor.finalize()
 
-    # 反向填充
+    # Reverse fill
     unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
     data = unpadder.update(padded_data) + unpadder.finalize()
 
     return data
 
-# 128位的AES密钥
+# 128-bite key
 
 """
 key = b'0123456789abcdef0123456789abcdef'
 #message = b'Hello, AESDJAKJDKLAJDALKJDALKJDAOID789765456AOIJA,DAKJDLKAJDAKNDM,ANDAKHDJKASHDJKADAM encryption!1564987564654564897987894545645623'
 
 print(type(key))
-# 生成1MB大小的随机字符串
+# 1MB random string
 text = ''.join(random.choices(string.ascii_letters + string.digits, k=400*1024*1024))
 message = text.encode('utf-8')
 #print(message)
